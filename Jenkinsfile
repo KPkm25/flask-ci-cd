@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Clone Code') {
             steps {
-                git 'https://github.com/kpkm25/flask-ci-cd.git'
+                git url: 'https://github.com/KPkm25/flask-ci-cd', branch: 'main'
             }
         }
         stage('Build Docker Image') {

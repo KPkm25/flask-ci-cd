@@ -1,26 +1,40 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            label 'k8s-agent'
+            defaultContainer 'jnlp'
+        }
+    }
+    environment {
+        DOCKER_HUB_CREDENTIALS = credentials('docker-creds')
+    }
     stages {
         stage('Clone Code') {
             steps {
-                git url: 'https://github.com/KPkm25/flask-ci-cd', branch: 'main'
+                git 'https://github.com/kpkm25/flask-ci-cd.git'
             }
         }
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t kpkm25/flask-ci-cd:latest .'
+                container('jnlp') {
+                    sh 'docker build -t kpkm25/flask-ci-cd:latest .'
+                }
             }
         }
         stage('Push to Docker Hub') {
             steps {
-                withDockerRegistry([credentialsId: 'docker-creds', url: '']) {
-                    sh 'docker push kpkm25/flask-ci-cd:latest'
+                container('jnlp') {
+                    withDockerRegistry([credentialsId: 'docker-creds', url: '']) {
+                        sh 'docker push kpkm25/flask-ci-cd:latest'
+                    }
                 }
             }
         }
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl apply -f k8s-deployment.yaml'
+                container('jnlp') {
+                    sh 'kubectl apply -f k8s-deployment.yaml'
+                }
             }
         }
     }

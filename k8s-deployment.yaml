@@ -4,6 +4,11 @@ metadata:
   name: flask-app
 spec:
   replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: flask-app
@@ -17,8 +22,17 @@ spec:
       containers:
         - name: flask-app
           image: kpkm25/flask-ci-cd:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 5000
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+
 ---
 apiVersion: v1
 kind: Service
@@ -27,8 +41,9 @@ metadata:
 spec:
   selector:
     app: flask-app
+  type: NodePort
   ports:
     - protocol: TCP
       port: 80
       targetPort: 5000
-  type: LoadBalancer
+      nodePort: 30008  # Change if needed
